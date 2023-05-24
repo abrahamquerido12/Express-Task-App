@@ -1,5 +1,6 @@
 const Task = require("../models/Task");
 const asyncWrapper = require("../middleware/async");
+const { createCustomError } = require("../errors/custom-error");
 
 const getAllTasks = asyncWrapper(async (req, res) => {
   const tasks = await Task.find({});
@@ -11,9 +12,13 @@ const createTask = asyncWrapper(async (req, res) => {
   res.status(201).send({ task });
 });
 
-const getTask = asyncWrapper(async (req, res) => {
+const getTask = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
   const task = await Task.findOne({ _id: id });
+
+  if (!task) {
+    return next(createCustomError(`No task with id : ${id}`, 404));
+  }
 
   res.status(200).json({ task });
 });
